@@ -13,4 +13,5 @@ Planning
 - [] Make possible to read the user messages aloud
 
 Possible additional functionalities to consider
+- [] Rate the pronunciation performance of the speaker and help him by giving him the phonemes of the right pronunciation if any errors.
 - [] RAG

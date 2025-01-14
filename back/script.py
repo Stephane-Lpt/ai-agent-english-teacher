@@ -1,91 +1,102 @@
-import getpass  # Importation pour obtenir des mots de passe de manière sécurisée
-import os  # Permet d'interagir avec le système d'exploitation, comme les fichiers et les variables d'environnement
-import requests  # Permet d'envoyer des requêtes HTTP, utile pour communiquer avec des API
+import getpass  # Importation to securely obtain passwords
+import os  # Allows interaction with the operating system, such as files and environment variables
+import requests  # Allows sending HTTP requests, useful for communicating with APIs
 
-from typing import Annotated  # Permet de spécifier des types de données plus précisément
-from typing_extensions import TypedDict  # Permet de définir des types de données structurés, comme des dictionnaires
+from typing import Annotated  # Allows specifying data types more precisely
+from typing_extensions import TypedDict  # Allows defining structured data types, such as dictionaries
 
-from langgraph.graph import StateGraph, START, END  # Importation pour créer un graphe d'états
-from langgraph.graph.message import add_messages  # Permet d'ajouter des messages dans le graphe
-from langchain_ollama import OllamaLLM  # Importation du modèle de langage d'Ollama
-from IPython.display import Image, display  # Permet d'afficher des images dans Jupyter notebooks, ici pour afficher un graphe
+from langgraph.graph import StateGraph, START, END  # Import for creating a state graph
+from langgraph.graph.message import add_messages  # Allows adding messages in the graph
+from langchain_ollama import OllamaLLM  # Import Ollama's language model
+from IPython.display import Image, display  # Allows displaying images in Jupyter notebooks, here for displaying a graph
 
-import traceback  # Permet d'afficher des informations détaillées sur les erreurs si quelque chose ne fonctionne pas
+import traceback  # Allows displaying detailed information about errors if something goes wrong
 
 
-# Fonction pour définir une variable d'environnement si elle n'est pas déjà définie
+# Function to set an environment variable if it is not already defined
 def _set_env(var: str):
-    if not os.environ.get(var):  # Vérifie si la variable n'existe pas déjà dans l'environnement
-        os.environ[var] = getpass.getpass(f"{var}: ")  # Si la variable n'existe pas, demande à l'utilisateur de la saisir de manière sécurisée
+    if not os.environ.get(var):  # Checks if the variable doesn't already exist in the environment
+        os.environ[var] = getpass.getpass(f"{var}: ")  # If the variable doesn't exist, asks the user to enter it securely
 
-# Définition d'un état comme un dictionnaire typé (un peu comme un tableau d'informations)
+# Defining a state as a typed dictionary (similar to a data table)
 class State(TypedDict):
-    # "messages" est une liste d'objets, chaque objet représentant un message dans le graphe
+    # "messages" is a list of objects, each object representing a message in the graph
     messages: Annotated[list, add_messages]
 
-# Initialisation d'un graphe d'état, ce qui permet de suivre les différentes étapes dans une conversation
+# Initializing a state graph, which allows tracking different steps in a conversation
 graph_builder = StateGraph(State)
 
-# Initialisation du modèle de langage Ollama (un programme qui peut répondre aux questions et effectuer des tâches avec du texte)
+# Initializing the Ollama language model (a program that can answer questions and perform text-based tasks)
 llm = OllamaLLM(model="llama3.2:1b")
 
-# Fonction pour traiter un fichier audio via l'API ASR (Reconnaissance automatique de la parole)
+# Function to process an audio file via the ASR (Automatic Speech Recognition) API
 def asr(state: State):
-    audio_file_path = state["messages"][-1].content  # On récupère le chemin du fichier audio envoyé par l'utilisateur
-    # print(audio_file_path, "\n")  # On affiche ce chemin (utile pour vérifier si c'est le bon fichier)
-    
-    # URL de l'API ASR qui va convertir l'audio en texte
-    url = "http://0.0.0.0:9000/asr?encode=true&task=transcribe&language=en&word_timestamps=false&output=txt"
-    
-    try:
-        # Ouvre le fichier audio et l'envoie à l'API pour obtenir une transcription (du texte)
-        with open(audio_file_path, "rb") as audio_file:
-            files = {"audio_file": (audio_file_path, audio_file, "audio/mpeg")}
-            headers = {"accept": "application/json"}
-            response = requests.post(url, files=files, headers=headers)  # Envoie la requête à l'API
-            response.raise_for_status()  # Si la requête échoue, une exception est levée
-            transcription = response.text.strip()  # Récupère la transcription (le texte)
-            
-            # TODO: Ajouter une vérification de la qualité de la transcription ici
+    audio_file_path = state["messages"][-1].content  # Get the path of the audio file
+    # print(audio_file_path, "\n")  # For debugging purposes
 
-            # On retourne l'état avec le message de la transcription, pour l'ajouter au graphe
+    # URL of the ASR API
+    url = "http://0.0.0.0:9000/asr?encode=true&task=transcribe&language=en&word_timestamps=false&output=txt"
+
+    try:
+        # Determine the file extension
+        _, ext = os.path.splitext(audio_file_path)
+        # Set the appropriate MIME type based on the file extension
+        if ext.lower() == ".wav":
+            mime_type = "audio/wav"
+        elif ext.lower() == ".mp3":
+            mime_type = "audio/mpeg"
+        else:
+            raise ValueError("Unsupported audio format")
+
+        # Open the audio file and send it to the API
+        with open(audio_file_path, "rb") as audio_file:
+            files = {"audio_file": (audio_file_path, audio_file, mime_type)}
+            headers = {"accept": "application/json"}
+            response = requests.post(url, files=files, headers=headers)  # Send the request to the API
+            response.raise_for_status()  # Raise an exception if the request fails
+            transcription = response.text.strip()  # Get the transcription (text)
+
+            # TODO: Add validation of the transcription quality here
+
+            # Return the state with the transcription message
             return {"messages": [*state["messages"], ("user", transcription)]}
-    
+
     except Exception as e:
-        # Si une erreur se produit, on ajoute un message d'erreur dans le graphe
+        # In case of an error, add an error message to the graph
         return {"messages": [*state["messages"], ("system", str(e))]}
+
     
-# Fonction chatbot : invoque le modèle de langage pour répondre à l'utilisateur avec du texte
+# Chatbot function: invokes the language model to respond to the user with text
 def chatbot(state: State):
-    # On génère la réponse avec le modèle
+    # Generate the response with the model
     response = llm.invoke(state["messages"])
     
-    # On retourne le message en tant que 'ai' (et non 'human')
+    # Return the message as 'ai' (not 'human')
     return {"messages": [*state["messages"], ("ai", response)]}
 
-# Ajout d'une relation (un "edge") du point de départ (START) au nœud ASR (pour le traitement audio)
+# Add an edge (a "connection") from the starting point (START) to the ASR node (for audio processing)
 graph_builder.add_edge(START, "asr")
-# Ajout du nœud ASR au graphe
+# Add the ASR node to the graph
 graph_builder.add_node("asr", asr)
 
-# Ajout d'une relation entre le nœud ASR et le nœud chatbot, pour continuer après la transcription
+# Add a relation between the ASR node and the chatbot node, to continue after transcription
 graph_builder.add_edge("asr", "chatbot")
-# Ajout du nœud chatbot au graphe
+# Add the chatbot node to the graph
 graph_builder.add_node("chatbot", chatbot)
 
-# Ajout d'une relation pour terminer le graphe après le chatbot
+# Add a relation to finish the graph after the chatbot
 graph_builder.add_edge("chatbot", END)
 
-# Compilation du graphe, ce qui permet d'exécuter les étapes définies dans l'ordre
+# Compile the graph, which allows executing the defined steps in order
 graph = graph_builder.compile()
 
-# Fonction pour sauvegarder le graphe en tant qu'image PNG
+# Function to save the graph as a PNG image
 def save_graph_as_png(graph, filename="graph.png"):
     try:
-        # Générer l'image PNG du graphe
+        # Generate the PNG image of the graph
         png_image = graph.get_graph().draw_mermaid_png()
         
-        # Sauvegarder l'image dans le fichier courant
+        # Save the image to the current file
         with open(filename, "wb") as file:
             file.write(png_image)
         
@@ -94,45 +105,45 @@ def save_graph_as_png(graph, filename="graph.png"):
     except Exception as e:
         print(f"An error occurred while saving the graph image: {str(e)}")
 
-# Exemple d'utilisation de la fonction pour sauvegarder l'image
+# Example usage of the function to save the image
 save_graph_as_png(graph, "my_graph.png")
 
 
-# Fonction pour traiter les mises à jour du graphe en réponse aux entrées utilisateur
+# Function to process graph updates in response to user inputs
 def stream_graph_updates(user_input: str):
     try:
-        # On commence l'état avec l'entrée utilisateur, ici un message de type "user"
+        # Start the state with the user input, here a message of type "user"
         initial_state = {"messages": [{"role": "user", "content": user_input}]}
         
-        # Le graphe traite l'état et renvoie les événements qui se produisent
+        # The graph processes the state and returns the events that occur
         for event in graph.stream(initial_state):
             for value in event.values():
-                # Affiche le dernier message généré par le modèle, qui répond à l'utilisateur
+                # Display the last message generated by the model, which responds to the user
                 print("Node:", value["messages"][-1], "\n")
     
     except Exception as e:
-        # Si une erreur se produit, on affiche le message d'erreur et une trace complète
+        # If an error occurs, display the error message and a full traceback
         print(f"Error in stream_graph_updates: {str(e)}")
         traceback.print_exc()
 
 
-# Boucle principale pour interagir avec l'utilisateur
+# Main loop to interact with the user
 while True:
     try:
-        # Demande une entrée utilisateur (fichier audio ou texte)
+        # Ask for user input (audio file or text)
         user_input = input("User (enter audio file path or text): ")
         
-        # Si l'utilisateur entre "quit", "exit" ou "q", on arrête la boucle et on dit au revoir
+        # If the user enters "quit", "exit", or "q", exit the loop and say goodbye
         if user_input.lower() in ["quit", "exit", "q"]:
             print("Goodbye!")
             break
 
-        # Envoie l'entrée de l'utilisateur pour traitement par le graphe
+        # Send the user input for processing by the graph
         stream_graph_updates(user_input)
     
     except:
-        # Si une erreur se produit pendant la lecture ou le traitement, on affiche un message d'erreur
+        # If an error occurs during input reading or processing, display an error message
         user_input = "Error occurred in user input processing."
         print("User: " + user_input)
-        stream_graph_updates(user_input)  # Traite l'erreur avec le graphe
-        break  # Quitte la boucle après l'erreur
+        stream_graph_updates(user_input)  # Process the error with the graph
+        break  # Exit the loop after the error

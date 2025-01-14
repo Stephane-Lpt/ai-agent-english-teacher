@@ -79,11 +79,24 @@ graph_builder.add_edge("chatbot", END)
 # Compilation du graphe, ce qui permet d'exécuter les étapes définies dans l'ordre
 graph = graph_builder.compile()
 
-# Essai pour afficher une représentation graphique du graphe sous forme d'image
-try:
-    display(Image(graph.get_graph().draw_mermaid_png()))  # Affiche l'image du graphe en utilisant Mermaid
-except Exception:
-    pass  # Si l'affichage échoue, on ignore l'erreur et on continue
+# Fonction pour sauvegarder le graphe en tant qu'image PNG
+def save_graph_as_png(graph, filename="graph.png"):
+    try:
+        # Générer l'image PNG du graphe
+        png_image = graph.get_graph().draw_mermaid_png()
+        
+        # Sauvegarder l'image dans le fichier courant
+        with open(filename, "wb") as file:
+            file.write(png_image)
+        
+        print(f"Graph image saved as {filename}")
+    
+    except Exception as e:
+        print(f"An error occurred while saving the graph image: {str(e)}")
+
+# Exemple d'utilisation de la fonction pour sauvegarder l'image
+save_graph_as_png(graph, "my_graph.png")
+
 
 # Fonction pour traiter les mises à jour du graphe en réponse aux entrées utilisateur
 def stream_graph_updates(user_input: str):

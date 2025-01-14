@@ -27,11 +27,13 @@ class State(TypedDict):
 graph_builder = StateGraph(State)
 
 # Initializing the Ollama language model (a program that can answer questions and perform text-based tasks)
-llm = OllamaLLM(model="llama3.2:1b")
+llm = OllamaLLM(model="gemma2:2b")
 
 # Function to process an audio file via the ASR (Automatic Speech Recognition) API
 def asr(state: State):
     audio_file_path = state["messages"][-1].content  # Get the path of the audio file
+    #remove the path from the state
+    state["messages"].pop()
     # print(audio_file_path, "\n")  # For debugging purposes
 
     # URL of the ASR API
@@ -69,10 +71,54 @@ def asr(state: State):
 # Chatbot function: invokes the language model to respond to the user with text
 def chatbot(state: State):
     # Generate the response with the model
-    response = llm.invoke(state["messages"])
+    # print(state["messages"])
+    response = llm.invoke([{"role": "system", "content": "You role is to be an english teacher who responds to his pupil and help him when his sentences are wrong. Your name is Mr. Smith."}] + state["messages"])
+
     
     # Return the message as 'ai' (not 'human')
     return {"messages": [*state["messages"], ("ai", response)]}
+
+def tts(state: State):
+    try:
+        # Text to convert into audio (last user message in the state)
+        text_to_synthesize = state["messages"][-1].content
+
+        # TTS API URL
+        api_url = "http://[::1]:5002/api/tts"
+        
+        # Parameters for the GET request
+        params = {
+            "text": text_to_synthesize,  # Text to synthesize
+            "speaker_id": "p299",       # Speaker ID (modifiable)
+            "style_wav": "",            # Optional parameter for style
+            "language_id": ""           # Optional parameter for language
+        }
+
+        # Sending the GET request to the API
+        response = requests.get(api_url, params=params)
+
+        # Checking the response status
+        response.raise_for_status()
+
+        # Retrieving the audio content (wav file)
+        audio_data = response.content
+
+        # Optional: Save the audio file locally (if needed)
+        with open("output.wav", "wb") as audio_file:
+            audio_file.write(audio_data)
+
+        print("Audio successfully generated and saved in 'output.wav'.")
+
+        # Return the updated state with a confirmation message
+        return {
+            "messages": [*state["messages"], {"role": "system", "content": "Audio synthesis complete."}]
+        }
+
+    except Exception as e:
+        # In case of an error, return the state with an error message
+        return {
+            "messages": [*state["messages"], {"role": "system", "content": f"Error in TTS: {str(e)}"}]
+        }
 
 # Add an edge (a "connection") from the starting point (START) to the ASR node (for audio processing)
 graph_builder.add_edge(START, "asr")
@@ -84,8 +130,12 @@ graph_builder.add_edge("asr", "chatbot")
 # Add the chatbot node to the graph
 graph_builder.add_node("chatbot", chatbot)
 
+# Add a relation between the chatbot and the TTS node, to generate audio from the chatbot's response
+graph_builder.add_edge("chatbot", "tts")
+graph_builder.add_node("tts", tts)
+
 # Add a relation to finish the graph after the chatbot
-graph_builder.add_edge("chatbot", END)
+graph_builder.add_edge("tts", END)
 
 # Compile the graph, which allows executing the defined steps in order
 graph = graph_builder.compile()

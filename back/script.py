@@ -32,7 +32,7 @@ llm = OllamaLLM(model="llama3.2:1b")
 # Fonction pour traiter un fichier audio via l'API ASR (Reconnaissance automatique de la parole)
 def asr(state: State):
     audio_file_path = state["messages"][-1].content  # On récupère le chemin du fichier audio envoyé par l'utilisateur
-    print(audio_file_path)  # On affiche ce chemin (utile pour vérifier si c'est le bon fichier)
+    # print(audio_file_path, "\n")  # On affiche ce chemin (utile pour vérifier si c'est le bon fichier)
     
     # URL de l'API ASR qui va convertir l'audio en texte
     url = "http://0.0.0.0:9000/asr?encode=true&task=transcribe&language=en&word_timestamps=false&output=txt"
@@ -95,7 +95,7 @@ def stream_graph_updates(user_input: str):
         for event in graph.stream(initial_state):
             for value in event.values():
                 # Affiche le dernier message généré par le modèle, qui répond à l'utilisateur
-                print("Node:", value["messages"][-1])
+                print("Node:", value["messages"][-1], "\n")
     
     except Exception as e:
         # Si une erreur se produit, on affiche le message d'erreur et une trace complète

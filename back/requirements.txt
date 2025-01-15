@@ -1,0 +1,7 @@
+fastapi
+requests
+langgraph
+langchain_ollama
+IPython
+python-multipart
+fastapi[standard]

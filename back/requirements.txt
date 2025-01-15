@@ -5,3 +5,5 @@ langchain_ollama
 IPython
 python-multipart
 fastapi[standard]
+
+# TODO : fix the versions for the stable release

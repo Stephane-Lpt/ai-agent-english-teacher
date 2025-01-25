@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.9'
 
 services:
   asr_service:
@@ -21,9 +21,31 @@ services:
     command: >
       -c "python3 TTS/server/server.py --model_name tts_models/en/vctk/vits"
 
+# # IF USING A CPU-ONLY
+#   ollama:
+#     image: ollama/ollama
+#     container_name: ollama
+#     volumes:
+#       - ollama:/root/.ollama
+#     ports:
+#       - "11434:11434"
+#     entrypoint: /bin/bash
+#     stdin_open: true
+#     tty: true
+#     command: >
+#       -c "ollama run gemma2:2b"
+
+# IF USING A GPU (CUDA). You need to install the Nvidia container toolkit before running this.
   ollama:
     image: ollama/ollama
     container_name: ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     volumes:
       - ollama:/root/.ollama
     ports:

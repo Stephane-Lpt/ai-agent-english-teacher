@@ -33,8 +33,7 @@ services:
     stdin_open: true
     tty: true
     command: >
-      -c "ollama serve"
-      -c "ollama run gemma2:2b"
+      -c "ollama serve && ollama run gemma2:2b"
 
 # # IF USING A GPU (CUDA). You need to install the Nvidia container toolkit before running this. Docs: (https://ollama.com/blog/ollama-is-now-available-as-an-official-docker-image#:~:text=ollama%20ollama/ollama-,Nvidia%20GPU,-Install%20the%20Nvidia)
 #   ollama:
@@ -55,7 +54,7 @@ services:
 #     stdin_open: true
 #     tty: true
 #     command: >
-#       -c "ollama run gemma2:2b"
+#      -c "ollama serve && ollama run gemma2:2b"
 
   mariadb:
     image: mariadb:latest

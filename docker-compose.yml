@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   asr_service:
     image: onerahmet/openai-whisper-asr-webservice:latest
@@ -56,25 +54,23 @@ services:
 #     command: >
 #      -c "ollama serve && ollama run gemma2:2b"
 
-  mariadb:
-    image: mariadb:latest
-    container_name: mariadb-container
+  postgres:
+    image: postgres:latest
+    container_name: postgres-container
     environment:
-      - MYSQL_ROOT_PASSWORD=my-secret-pw
-      - MYSQL_DATABASE=mydatabase
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=my-secret-pw
+      - POSTGRES_DB=mydatabase
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - mariadb_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
-    command: >
-      --default-authentication-plugin=mysql_native_password
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       retries: 3
 
-
 volumes:
-  mariadb_data:
+  postgres_data:
   ollama:

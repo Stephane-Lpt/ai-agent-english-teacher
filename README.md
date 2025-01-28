@@ -6,12 +6,16 @@
 I would like to allow users to create their own context (where encounter takes place, when, with whom) and also their own instructions like correct grammar, give C1 vocabular suggestions)
 
 Planning
+BACK: 
 - [x] Web interface : pushMessage(sender, message) to display messages + record button
 - [x] Searching for docker containers online for each model needed (asr, llm, tts)
-- [] Use Langgraph to make the pipeline
-    - [] LLM
-    - [] ASR
-    - [] TTS
+- [x] Use Langgraph to make the pipeline
+    - [x] LLM
+    - [x] ASR
+    - [x] TTS
+- [] Save the current state of conversation in database
+
+FRONT:
 - [] Make possible to read the user messages aloud
 
 ## Possible additional functionalities to consider
@@ -24,3 +28,4 @@ Planning
     - My application requires decisions or branching workflows, like:
         - If ASR confidence < 70%, ask the user to repeat.
         - If grammar is correct but pronunciation is poor, suggest phonetic practice.
+

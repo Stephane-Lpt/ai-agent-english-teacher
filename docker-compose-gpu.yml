@@ -1,0 +1,66 @@
+version: '3.9'
+
+services:
+  asr_service:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    container_name: asr_service
+    ports:
+      - "9000:9000"
+    environment:
+      - ASR_MODEL=base
+      - ASR_ENGINE=openai_whisper
+
+  tts_service:
+    image: ghcr.io/coqui-ai/tts-cpu
+    container_name: tts_service
+    ports:
+      - "5002:5002"
+    entrypoint: /bin/bash
+    stdin_open: true
+    tty: true
+    command: >
+      -c "python3 TTS/server/server.py --model_name tts_models/en/vctk/vits"
+
+# IF USING A GPU (CUDA). You need to install the Nvidia container toolkit before running this. Docs: (https://ollama.com/blog/ollama-is-now-available-as-an-official-docker-image#:~:text=ollama%20ollama/ollama-,Nvidia%20GPU,-Install%20the%20Nvidia)
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    volumes:
+      - ollama:/root/.ollama
+    ports:
+      - "11434:11434"
+    entrypoint: /bin/bash
+    stdin_open: true
+    tty: true
+    command: >
+     -c "ollama serve && ollama run gemma2:2b"
+
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb-container
+    environment:
+      - MYSQL_ROOT_PASSWORD=my-secret-pw
+      - MYSQL_DATABASE=mydatabase
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    command: >
+      --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 3
+
+
+volumes:
+  mariadb_data:
+  ollama:

@@ -6,4 +6,5 @@ IPython
 python-multipart
 fastapi[standard]
 psycopg2-binary
+langgraph-checkpoint-postgres
 # TODO : fix the versions for the stable release

@@ -10,7 +10,19 @@ from langgraph.graph.message import add_messages  # Allows adding messages in th
 from langchain_ollama import OllamaLLM  # Import Ollama's language model
 from IPython.display import Image, display  # Allows displaying images in Jupyter notebooks, here for displaying a graph
 
+from psycopg import Connection
+from langgraph.prebuilt import create_react_agent
+from langgraph.checkpoint.postgres import PostgresSaver
+
 import traceback  # Allows displaying detailed information about errors if something goes wrong
+
+# Database connection parameters
+DB_URI = "postgresql://postgres:my-secret-pw@localhost:5442/postgres?sslmode=disable"
+connection_kwargs = {
+    "autocommit": True,
+    "prepare_threshold": 0,
+}
+
 
 # Defining a state as a typed dictionary (similar to a data table)
 class State(TypedDict):
@@ -136,7 +148,9 @@ graph_builder.add_node("tts", tts)
 graph_builder.add_edge("tts", END)
 
 # Compile the graph, which allows executing the defined steps in order
-graph = graph_builder.compile()
+checkpointer = PostgresSaver(DB_URI, connection_kwargs)
+graph = graph_builder.compile(checkpointer=checkpointer)
+
 
 # Function to save the graph as a PNG image
 def save_graph_as_png(graph, filename="graph.png"):

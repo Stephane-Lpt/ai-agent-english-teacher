@@ -31,6 +31,10 @@ function pushAudioMessage(sender, audioUrl) {
     const audioElement = document.createElement('audio');
     audioElement.controls = true;
     audioElement.src = audioUrl;
+    if (sender === 'ai') {
+        audioElement.autoplay = true;
+    }
+    
 
     bubble.appendChild(audioElement);
     messageDiv.appendChild(bubble);
@@ -109,10 +113,6 @@ async function sendAudioToApi(audioBlobUser, processingMessageId) {
         
         // Push the audio as a new message
         pushAudioMessage('ai', audioUrl);
-        const audioElement = new Audio(audioUrl);
-            audioElement.play().catch(err => {
-            console.error("Erreur lors de la lecture de l'audio :", err);
-        });
     } catch (error) {
         console.error('Error sending audio:', error);
         // Update the "Processing" message with an error

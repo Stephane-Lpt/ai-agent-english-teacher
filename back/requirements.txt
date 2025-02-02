@@ -5,6 +5,6 @@ langchain_ollama
 IPython
 python-multipart
 fastapi[standard]
-psycopg2-binary
+psycopg[binary,pool]
 langgraph-checkpoint-postgres
 # TODO : fix the versions for the stable release

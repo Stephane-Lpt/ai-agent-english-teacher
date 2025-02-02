@@ -88,9 +88,11 @@ function stopRecording() {
     }
 }
 
-async function sendAudioToApi(audioBlob, processingMessageId) {
+async function sendAudioToApi(audioBlobUser, processingMessageId) {
     const formData = new FormData();
-    formData.append('file', audioBlob, 'recorded-audio.wav');
+    formData.append('file', audioBlobUser, 'recorded-audio.wav');
+    const audioUrlUser = URL.createObjectURL(audioBlobUser); // Create a URL for the blob
+    pushAudioMessage('user', audioUrlUser);
 
     try {
         const response = await fetch('http://127.0.0.1:8000/process-audio/', {
@@ -102,11 +104,15 @@ async function sendAudioToApi(audioBlob, processingMessageId) {
             throw new Error('Failed to process audio');
         }
 
-        const audioBlob = await response.blob(); // Get audio file blob from API response
-        const audioUrl = URL.createObjectURL(audioBlob); // Create a URL for the blob
+        const audioBlobResponse = await response.blob(); // Get audio file blob from API response
+        const audioUrl = URL.createObjectURL(audioBlobResponse); // Create a URL for the blob
         
         // Push the audio as a new message
         pushAudioMessage('ai', audioUrl);
+        const audioElement = new Audio(audioUrl);
+            audioElement.play().catch(err => {
+            console.error("Erreur lors de la lecture de l'audio :", err);
+        });
     } catch (error) {
         console.error('Error sending audio:', error);
         // Update the "Processing" message with an error

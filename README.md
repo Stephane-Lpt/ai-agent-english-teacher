@@ -13,14 +13,22 @@ BACK:
     - [x] LLM
     - [x] ASR
     - [x] TTS
-- [] Save the current state of conversation in database
-
+- [x] Save the current state of conversation in database
+- [] Benchmark the different models for asr, llm, tts
+- [] Give a good prompt to the tutor
 FRONT:
-- [] Make possible to read the user messages aloud
+- [x] Make possible to read the user messages aloud
+
+GENERAL:
+- [] Change the language of the tutor easily
+- [] Let the user choose his own context of conversation
+- [] Let the user choose the length of the english tutor responses
+- [] Let the user choose if he wants a real fluent conversation with an endpoint detection or being capacle to redo their audio
 
 ## Possible additional functionalities to consider
 - [] Rate the pronunciation performance of the speaker and help him by giving him the phonemes of the right pronunciation if any errors.
-- [] RAG
+- [] Have a lightweight avatar
+- [] RAG to rate the best responses
 
 
 ## Justification

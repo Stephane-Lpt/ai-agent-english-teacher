@@ -2,3 +2,5 @@ pronunciation-score.txt
 env/
 *.pyc
 temp_files/
+.venv
+venv

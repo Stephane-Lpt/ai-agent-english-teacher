@@ -7,4 +7,5 @@ python-multipart
 fastapi[standard]
 psycopg[binary,pool]
 langgraph-checkpoint-postgres
+uvicorn[standard]
 # TODO : fix the versions for the stable release

@@ -1,4 +1,18 @@
 services:
+  fastapi_backend:
+    build:
+      context: ./back  # Path to the FastAPI project
+    container_name: fastapi_backend
+    ports:
+      - "8000:8000"  # Map FastAPI default port
+    volumes:
+      - ./back:/app  # Sync local code with container
+    environment:
+      - PYTHONUNBUFFERED=1  # Ensures logs are shown immediately
+    stdin_open: true  # Keep container interactive
+    tty: true  # Enable terminal interaction
+    command: ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
+
   asr_service:
     image: onerahmet/openai-whisper-asr-webservice:latest-gpu
     container_name: asr_service
@@ -11,6 +25,13 @@ services:
   tts_service:
     image: ghcr.io/coqui-ai/tts
     container_name: tts_service
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     ports:
       - "5002:5002"
     entrypoint: /bin/bash
@@ -33,7 +54,7 @@ services:
     volumes:
       - ollama:/root/.ollama
     ports:
-      - "11434:11434"
+      - "11435:11434"
     entrypoint: /bin/bash
     stdin_open: true
     tty: true

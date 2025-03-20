@@ -17,7 +17,7 @@ from langgraph.checkpoint.postgres import PostgresSaver
 import traceback  # Allows displaying detailed information about errors if something goes wrong
 
 # Database connection parameters
-DB_URI = "postgresql://postgres:my-secret-pw@localhost:5432/postgres?sslmode=disable"
+DB_URI = "postgresql://postgres:my-secret-pw@postgres-container:5432/postgres?sslmode=disable"
 connection_kwargs = {
     "autocommit": True,
     "prepare_threshold": 0,
@@ -33,7 +33,7 @@ class State(TypedDict):
 graph_builder = StateGraph(State)
 
 # Initializing the Ollama language model (a program that can answer questions and perform text-based tasks)
-llm = OllamaLLM(model="gemma2:2b")
+llm = OllamaLLM(model="gemma2:2b", base_url="http://ollama:11434")
 
 # Function to process an audio file via the ASR (Automatic Speech Recognition) API
 def asr(state: State):
@@ -43,7 +43,7 @@ def asr(state: State):
     # print(audio_file_path, "\n")  # For debugging purposes
 
     # URL of the ASR API
-    url = "http://localhost:9000/asr?encode=true&task=transcribe&language=en&word_timestamps=false&output=txt"
+    url = "http://asr_service:9000/asr?encode=true&task=transcribe&language=en&word_timestamps=false&output=txt"
 
     try:
         # Determine the file extension
@@ -90,7 +90,8 @@ def tts(state: State):
         text_to_synthesize = state["messages"][-1].content
 
         # TTS API URL
-        api_url = "http://[::1]:5002/api/tts"
+        api_url = "http://tts_service:5002/api/tts"
+
         
         # Parameters for the GET request
         params = {

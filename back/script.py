@@ -164,7 +164,7 @@ def stream_graph_updates(user_input: str):
         config = {"configurable": {"thread_id": "3"}}
 
         # Example usage of the function to save the image
-        save_graph_as_png(graph, "my_graph.png")
+        #save_graph_as_png(graph, "my_graph.png")
         try:
 
             

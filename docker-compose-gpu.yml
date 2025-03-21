@@ -1,4 +1,15 @@
 services:
+  web:
+    image: node:alpine
+    container_name: web_service_front
+    volumes:
+      - ./front:/usr/src/app
+    working_dir: /usr/src/app
+    ports:
+      - "8080:8080"
+    command: ["npx", "http-server", "-p", "8080"]
+    restart: always
+
   fastapi_backend:
     build:
       context: ./back  # Path to the FastAPI project
@@ -11,7 +22,7 @@ services:
       - PYTHONUNBUFFERED=1  # Ensures logs are shown immediately
     stdin_open: true  # Keep container interactive
     tty: true  # Enable terminal interaction
-    command: ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
   asr_service:
     image: onerahmet/openai-whisper-asr-webservice:latest-gpu
@@ -53,13 +64,11 @@ services:
               capabilities: [gpu]
     volumes:
       - ollama:/root/.ollama
+      - ./init-scripts/run-ollama.sh:/tmp/run_ollama.sh
     ports:
       - "11435:11434"
-    entrypoint: /bin/bash
-    stdin_open: true
-    tty: true
-    command: >
-     -c "ollama serve && ollama run gemma2:2b"
+    entrypoint: ["/bin/sh", "/tmp/run_ollama.sh"]
+
 
   postgres:
     image: postgres:latest

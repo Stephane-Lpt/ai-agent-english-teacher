@@ -6,11 +6,11 @@
 I would like to allow users to create their own context (where encounter takes place, when, with whom) and also their own instructions like correct grammar, give C1 vocabular suggestions)
 ## Prerequisites
 - Install docker engine
-  - Windows: [Docker Desktop](https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe?utm_source=docker&utm_medium=webreferral&utm_campaign=docs-driven-download-win-amd64) or [WSL] (https://learn.microsoft.com/en-us/windows/wsl/install)
-  - Ubuntu: [Link](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
-  - Other Linux distributions: [Link](https://docs.docker.com/engine/install/)
+  - Windows: [Docker Desktop](https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe?utm_source=docker&utm_medium=webreferral&utm_campaign=docs-driven-download-win-amd64) or [WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
+  - Ubuntu: [Installation Guide](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
+  - Other Linux distributions: [Installation Guide](https://docs.docker.com/engine/install/)
 ## Installation
-- ```docker compose up -d``` or ```docker compose -f docker-compose-gpu.yml up -d
+- ```docker compose up -d``` or ```docker compose -f docker-compose-gpu.yml up -d```
 - Wait 5 minutes to pull all the images (just for the first time)
 - Wait 1 minute after starting the docker stack because some services like ollama needs to pull the model (just for the first time, then it is like 10 seconds)
 - Go at page to start the conversation: [http://localhost:8080](http://localhost:8080)

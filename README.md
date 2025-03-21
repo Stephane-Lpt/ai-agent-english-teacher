@@ -10,7 +10,7 @@ I would like to allow users to create their own context (where encounter takes p
   - Ubuntu: [Installation Guide](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
   - Other Linux distributions: [Installation Guide](https://docs.docker.com/engine/install/)
 ## Installation
-- ```docker compose up -d``` or ```docker compose -f docker-compose-gpu.yml up -d```
+- ```docker compose up -d``` or (if you have a gpu)```docker compose -f docker-compose-gpu.yml up -d```
 - Wait 5 minutes to pull all the images (just for the first time)
 - Wait 1 minute after starting the docker stack because some services like ollama needs to pull the model (just for the first time, then it is like 10 seconds)
 - Go at page to start the conversation: [http://localhost:8080](http://localhost:8080)

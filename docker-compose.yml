@@ -9,6 +9,13 @@ services:
       - "8080:8080"
     command: ["npx", "http-server", "-p", "8080"]
     restart: always
+    depends_on:
+      fastapi_backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f 'http://localhost:8080/' || exit 1"]
+      interval: 30s
+      retries: 20
 
   fastapi_backend:
     build:
@@ -23,6 +30,19 @@ services:
     stdin_open: true  # Keep container interactive
     tty: true  # Enable terminal interaction
     command: ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      asr_service:
+        condition: service_healthy
+      tts_service:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f 'http://localhost:8000/docs' || exit 1"]
+      interval: 30s
+      retries: 20
     
   asr_service:
     image: onerahmet/openai-whisper-asr-webservice:latest
@@ -32,6 +52,10 @@ services:
     environment:
       - ASR_MODEL=base
       - ASR_ENGINE=openai_whisper
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f 'http://localhost:9000/docs'  || exit 1"]
+      interval: 30s
+      retries: 20
 
   tts_service:
     image: ghcr.io/coqui-ai/tts-cpu
@@ -42,7 +66,11 @@ services:
     stdin_open: true
     tty: true
     command: >
-      -c "python3 TTS/server/server.py --model_name tts_models/en/vctk/vits"
+      -c "apt update && apt install curl -y && python3 TTS/server/server.py --model_name tts_models/en/vctk/vits"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f 'http://localhost:5002/'  || exit 1"]
+      interval: 30s
+      retries: 20
 
 # IF USING A CPU-ONLY
   ollama:
@@ -54,6 +82,10 @@ services:
     ports:
       - "11435:11434"
     entrypoint: ["/bin/sh", "/tmp/run_ollama.sh"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f 'http://localhost:11434/' || exit 1"]
+      interval: 30s
+      retries: 20
 
 # # IF USING A GPU (CUDA). You need to install the Nvidia container toolkit before running this. Docs: (https://ollama.com/blog/ollama-is-now-available-as-an-official-docker-image#:~:text=ollama%20ollama/ollama-,Nvidia%20GPU,-Install%20the%20Nvidia)
 #   ollama:

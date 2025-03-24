@@ -78,7 +78,7 @@ def asr(state: State):
 def chatbot(state: State):
     # Generate the response with the model
     # print(state["messages"])
-    response = llm.invoke([{"role": "system", "content": "You role is to be an english teacher who responds to his pupil and help him when his sentences are wrong. Your name is Mr. Smith. Answer with 5 sentences maximum and use readable plain text without markdown."}] + state["messages"])
+    response = llm.invoke([{"role": "system", "content": "You role is to be an english teacher who responds to his pupil and help him when his sentences are wrong. Your name is Mr. Smith. Answer with 5 sentences maximum. Respond using only plain text. Do not use emojis, special characters, bullet points, markdown or any formatting that is not easily readable. Your responses should be clear, direct, and professional, avoiding any unnecessary embellishments or symbols."}] + state["messages"])
 
     # Return the message as 'ai' (not 'human')
     return {"messages": [*state["messages"], ("ai", response)]}
